@@ -1,0 +1,229 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/index.css">
+<style>
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        padding: 32px;
+        overflow-x: hidden;
+    }
+
+    .track-row,
+    .playlist-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-radius: 10px;
+        padding: 8px;
+    }
+
+    .track-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 30%;
+    }
+
+    .row-container {
+        height: max-content;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-radius: 25px;
+        padding: 32px;
+        /* NEW */
+    }
+
+    img {
+        height: 50px;
+        width: 50px;
+        border-radius: 5px;
+    }
+
+    .track-row:hover,
+    .playlist-row:hover {
+        background-color: #2a2a2a
+    }
+
+    input[type="radio"]:checked+label {
+        background-color: #5b5a5b
+    }
+
+    .selected-track-row,
+    .selected-playlist-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-radius: 10px;
+        padding: 8px;
+        width: max-content;
+    }
+
+    .selected-track-row .text-1,
+    .selected-track-row .text-2,
+    .selected-playlist-row .text-1,
+    .selected-playlist-row .text-2 {
+        width: max-content;
+    }
+
+    .text-1 {
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .text-2 {
+        color: rgba(255, 255, 255, 0.75);
+    }
+</style>
+
+<body>
+    <div class="nav">
+        <a href="/" style="font-size: 32px;font-weight: 700;color: #1DB954;">PlaylistMaker</a>
+        <div style="display: flex;gap: 32px;align-items: center;">
+            <a style="font-weight: 700;" href="/user/">{{user.display_name}}</a>
+            <a href="/user_logout/">Logout</a>
+        </div>
+    </div>
+    <form id="form" action="/add_track/{{file_idx}}/" method="post">
+        {% csrf_token %}
+        <div style="display: flex;align-items: center;justify-content: space-between;">
+            <p style="font-size: 24px;color: white;">Searching for "{{file.name}}"</p>
+            <div style="display: flex;gap: 32px;align-items: center;">
+                <div id="selected-container" style="display: none;gap: 32px;align-items: center;">
+                    <div class="selected-track-row">
+                        <img id="selected-track-img">
+                        <div class="track-col">
+                            <p id="selected-track-name" class="text-1">
+                                Track name
+                            </p>
+                            <p id="selected-track-artists" class="text-2">
+                                Artists
+                            </p>
+                        </div>
+                    </div>
+                    <div class="selected-playlist-row">
+                        <img id="selected-playlist-img">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <p id="selected-playlist-owner" class="text-2">Playlist owner</p>
+                            <p id="selected-playlist-name" class="text-1">Playlist name</p>
+                        </div>
+                    </div>
+                    <button
+                        style="font-size: 16px; font-weight: 700; border: none; padding: 8px 10px;border-radius: 25px;background-color: #1DB954;"
+                        type="submit">
+                        Add track
+                    </button>
+                </div>
+                <a href="{% url 'files' file_idx|add:1 %}"
+                    style="font-weight: 700; padding: 8px 10px;border-radius: 25px;color: #191414;background-color: #1DB954;text-decoration: none;">
+                    Skip
+                </a>
+            </div>
+        </div>
+        <div style="display: flex; gap: 32px;">
+            <div class="row-container" style="width: 60%;">
+                <div style="display: flex;gap: 8px;padding: 8px;border-bottom: 1px solid rgba(255, 255, 255, 0.25);">
+                    <div style="width: 50px;"></div>
+                    <p class="text-2" style="width: 60%;">Title</p>
+                    <p class="text-2" style="width: 30%;">Album</p>
+                    <p class="text-2" style="width: 10%;text-align: right;">Length</p>
+                </div>
+                {% for track in tracks %}
+                <input type="radio" hidden id="{{ track.id }}" value="{{ track.id }}" name="tracks" />
+                <label class="track-row" for="{{ track.id }}">
+                    <img src="{{ track.album.images.0.url }}">
+                    <div class="track-col" style="width: 60%;">
+                        <p class="text-1">{{track.name}}</p>
+                        <p class="text-2">
+                            {% for artist in track.artists %}
+                            {{ artist.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                    <p class="text-2" style="width: 30%;">{{track.album.name}}</p>
+                    <p class="text-2" style="width: 10%;text-align: right;">{{ track.duration }}</p>
+                </label>
+                {%endfor%}
+            </div>
+            <div class="row-container" style="width: 40%;">
+                <div style="display: flex;gap: 8px;padding: 8px;border-bottom: 1px solid rgba(255, 255, 255, 0.25);">
+                    <div style="width: 50px;"></div>
+                    <p style="width: 80%;"></p>
+                    <p style="width: 20%;text-align: right;" class="text-2" style="width: 30%;">Tracks</p>
+                </div>
+                {% for playlist in playlists %}
+                <input type="radio" hidden id="{{ playlist.id }}" value="{{ playlist.id }}" name="playlists" />
+                <label class="playlist-row" for="{{ playlist.id }}">
+                    <img src="{{ playlist.images.0.url }}">
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 80%;">
+                        <p class="text-2">{{ playlist.owner.display_name }}</p>
+                        <p class="text-1" data-id="{{ playlist.id }}">
+                            {{ playlist.name }}
+                        </p>
+                    </div>
+                    <p class="text-2" style="width: 20%;text-align: right;" data-id="{{ playlist.id }}">
+                        {{ playlist.tracks.total }}
+                    </p>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </form>
+</body>
+{{ tracks|json_script:"tracks" }}
+{{ playlists|json_script:"playlists" }}
+<script>
+    const tracks = JSON.parse(document.getElementById('tracks').textContent);
+    const playlists = JSON.parse(document.getElementById('playlists').textContent);
+    const selectedContainer = document.getElementById("selected-container");
+
+    let trackId;
+    let playlistId = sessionStorage.getItem("playlistId");
+
+    if (playlistId) {
+        const radioElement = document.getElementById(playlistId);
+        radioElement.checked = true;
+    }
+
+
+    document.getElementById('form').addEventListener('change', (e) => {
+        if (e.target.name === 'tracks') {
+            trackId = e.target.id;
+        } else if (e.target.name = 'playlists') {
+            playlistId = e.target.id
+            sessionStorage.setItem("playlistId", playlistId);
+        }
+
+        if (trackId && playlistId) {
+
+            // find selected track
+
+            let track = tracks.find((e) => e.id === trackId);
+            let playlist = playlists.find((e) => e.id === playlistId);
+
+            const trackImage = document.getElementById("selected-track-img");
+            const trackName = document.getElementById("selected-track-name");
+            const trackArtists = document.getElementById("selected-track-artists");
+
+            const playlistImage = document.getElementById("selected-playlist-img");
+            const playlistName = document.getElementById("selected-playlist-name");
+            const playlistOwner = document.getElementById("selected-playlist-owner");
+
+            trackImage.src = track.album.images[0]?.url || "";
+            trackName.innerText = track.name;
+            trackArtists.innerText = track.artists.map((artist) => artist.name).join(", ");
+
+            playlistImage.src = playlist.images[0]?.url || "";
+            playlistName.innerText = playlist.name;
+            playlistOwner.innerText = playlist.owner.display_name;
+
+            // reveal container element
+
+            selectedContainer.style.display = "flex";
+        }
+    });
+</script>

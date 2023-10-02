@@ -1,0 +1,94 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/index.css">
+<style>
+    .container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .submit-label {
+        padding: 10px 16px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #191414;
+        background-color: #1DB954;
+        border-radius: 25px;
+    }
+
+    .file-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+        padding: 32px;
+        background-color: #2a2a2a;
+        border-radius: 25px;
+        color: white;
+    }
+
+    .process-button {
+        width: max-content;
+        padding: 8px 10px;
+        font-weight: 700;
+        color: #191414;
+        background-color: #1DB954;
+        border-radius: 25px;
+        text-decoration: none;
+    }
+</style>
+
+<body>
+    <div class="nav">
+        <a href="/" style="font-size: 32px;font-weight: 700;color: #1DB954;">PlaylistMaker</a>
+        {% if user is not None %}
+        <div style="display: flex;gap: 32px;align-items: center;">
+            <a style="font-weight: 700;" href="{% url 'user' %}">{{user.display_name}}</a>
+            <a href="{% url 'user_logout' %}">Logout</a>
+        </div>
+        {%else%}
+        <a href="{% url 'spotify_login' %}">Log in with Spotify</a>
+        {%endif%}
+    </div>
+    <div class="container">
+        <form action="/upload/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input id="files" type="file" name="files" multiple hidden>
+            <input id="submit-button" type="submit" hidden>
+            <label class="submit-label" for="files">Select files</label>
+        </form>
+        {% if file_data %}
+        <div class="file-container">
+            <p style="font-size: 24px;">You have uploaded {{file_data|length}} files.</p>
+            <div style="display: flex;gap: 8px;flex-direction: column;width: 100%;">
+                {% if file_data|length > 10 %}
+                {% for file in file_data|slice:":10" %}
+                <p style="font-size: 20px;">{{ file.name }}</p>
+                {% endfor %}
+                {% else %}
+                {% for file in file_data %}
+                <p style="font-size: 20px;">{{ file.name }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            {% if file_data|length > 10 %}
+            <p>More</p>
+            {% endif %}
+            <a class="process-button" href="{% url 'files' 0 %}">Start processing files</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+<script>
+    const fileInput = document.getElementById('files');
+    const submitButton = document.getElementById('submit-button');
+
+    fileInput.addEventListener('change', () => {
+        submitButton.click();
+    })
+</script>
